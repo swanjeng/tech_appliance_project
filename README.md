@@ -1,1 +1,0 @@
-# tech_appliance_project

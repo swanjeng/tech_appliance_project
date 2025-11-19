@@ -1,0 +1,150 @@
+# 匯入 pygame 模組
+import pygame
+import cv2
+
+# ----------------- 遊戲初始化設定 -----------------
+
+# 初始化所有 Pygame 模組
+pygame.init()
+
+# 設定遊戲視窗的寬度和高度
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 400
+
+# 建立遊戲視窗，並將視窗物件存入 screen 變數
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+# 設定視窗標題
+pygame.display.set_caption("小恐龍遊戲")
+
+# 設定遊戲的時鐘，用於控制遊戲的幀率
+clock = pygame.time.Clock()
+
+# ----------------- 顏色和物體設定 -----------------
+
+# 定義顏色 (R, G, B)
+WHITE = (255, 255, 255)  # 白色
+BLACK = (0, 0, 0)      # 黑色
+RED = (255, 0, 0)      # 紅色
+GREEN = (0, 255, 0)    # 綠色
+BLUE = (0, 0, 255)     # 藍色
+YELLOW = (255, 255, 0) # 黃色
+CYAN = (0, 255, 255)   # 青色
+MAGENTA = (255, 0, 255) # 洋紅色
+
+# 設定地面高度
+ground_height = 10
+
+# 設定恐龍方塊的初始位置和大小
+dino_width = 30
+dino_height = 30
+dino_x = 50  # 恐龍的 x 座標，靠左
+dino_y = SCREEN_HEIGHT - dino_height - ground_height  # 恐龍的 y 座標，靠上
+dino_rect = pygame.Rect(dino_x, dino_y, dino_width, dino_height)
+
+# 設定障礙物方塊的初始位置和大小
+obstacle_width = 30
+obstacle_height = 30
+obstacle_x = SCREEN_WIDTH - obstacle_width - 50  # 障礙物的 x 座標，靠右
+obstacle_y = SCREEN_HEIGHT - obstacle_height - ground_height  # 障礙物的 y 座標，靠上
+obstacle_rect = pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height)
+
+# ----------------- 跳躍相關參數 -----------------
+
+# 恐龍是否正在跳躍
+is_jumping = False
+# 恐龍的垂直速度，向上為負值，向下為正值
+jump_velocity = 0
+# 跳躍的初始速度
+JUMP_SPEED = -20
+# 重力加速度
+GRAVITY = 0.8
+
+obstacle_velocity = 5
+
+# ----------------- 遊戲主迴圈 -----------------
+
+# 設定一個布林變數來控制遊戲是否繼續運行
+running = True
+game_over = False
+
+# 遊戲主迴圈開始
+while running:
+    # 控制遊戲的幀率，每秒更新 60 次
+    clock.tick(60)
+
+    # 偵測事件
+    for event in pygame.event.get():
+        # 如果使用者點擊視窗右上角的關閉按鈕
+        if event.type == pygame.QUIT:
+            running = False
+        
+        # 偵測鍵盤按鍵事件
+        if event.type == pygame.KEYDOWN:
+            # 如果按下的鍵是空白鍵 (pygame.K_SPACE)
+            # 並且恐龍不在跳躍狀態，才能觸發跳躍
+            if event.key == pygame.K_SPACE and not is_jumping and not game_over:
+                is_jumping = True
+                jump_velocity = JUMP_SPEED
+            if event.key == pygame.K_q:
+                running = False
+            if event.key == pygame.K_r:
+                game_over = False
+                obstacle_x = SCREEN_WIDTH - obstacle_width - 50
+                obstacle_rect.x = obstacle_x
+
+    # ----------------- 更新恐龍位置 -----------------
+    
+    # 如果恐龍正在跳躍
+    if is_jumping and not game_over:
+        # 根據跳躍速度更新恐龍的垂直位置 (y 座標)
+        dino_rect.y += jump_velocity
+        # v = u + at (t 為迴圈一圈的時間)
+        jump_velocity += GRAVITY
+        
+        # 檢查恐龍是否落地
+        # 如果恐龍的底部 y 座標大於等於地面 y 座標
+        if dino_rect.bottom >= SCREEN_HEIGHT - ground_height:
+            # 將恐龍放回地面上
+            dino_rect.bottom = SCREEN_HEIGHT - ground_height
+            # 結束跳躍狀態
+            is_jumping = False
+            # 重設跳躍速度
+            jump_velocity = 0
+
+    # ----------------- 更新障礙物位置 -----------------
+    if not game_over:
+        obstacle_rect.x -= obstacle_velocity
+        if obstacle_rect.right < 0:
+            obstacle_rect.x = SCREEN_WIDTH - obstacle_width - 50
+    
+    if dino_rect.colliderect(obstacle_rect):
+        game_over = True
+    
+    # ----------------- 繪製遊戲畫面 -----------------
+    
+    # 用白色填滿整個遊戲視窗
+    screen.fill(WHITE)
+
+    # 繪製一個黑色的恐龍方塊
+    pygame.draw.rect(screen, BLACK, dino_rect)
+    
+    # 繪製地面
+    #                                  (x, y, width, height)
+    pygame.draw.rect(screen, BLUE, (0, SCREEN_HEIGHT - ground_height, SCREEN_WIDTH, ground_height))
+
+    pygame.draw.rect(screen, RED, obstacle_rect)
+    
+    if game_over:
+        font = pygame.font.Font(None, 36)
+        text = font.render("Game Over", True, RED)
+        text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        screen.blit(text, text_rect)
+
+    # 更新整個畫面
+    pygame.display.flip()
+
+# ----------------- 遊戲結束 -----------------
+
+# 退出 Pygame
+pygame.quit()

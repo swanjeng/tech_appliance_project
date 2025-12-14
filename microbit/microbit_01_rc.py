@@ -1,9 +1,20 @@
-angle1 = 0
-radio.set_group(5)
+from microbit import *
+import radio
+import time
 
-def on_forever():
-    global angle1
-    angle1 = Math.constrain(input.acceleration(Dimension.Y), 0, 1000)
-    radio.send_value("angle1", angle1)
-    basic.pause(100)
-basic.forever(on_forever)
+def constrain(value, lower, upper):
+    if value < lower:
+        return lower
+    elif value > upper:
+        return upper
+    return value
+
+radio.config(group=5)
+radio.on()
+
+while True:
+    angle = accelerometer.get_y()
+    angle = constrain(angle, 0, 1000)
+    radio.send(str(angle))
+    
+    time.sleep(0.1)

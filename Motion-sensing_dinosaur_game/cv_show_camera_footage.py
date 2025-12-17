@@ -8,12 +8,12 @@ if not cap.isOpened():
 while True:
     success, imgBGR = cap.read() # cap.read() 回傳的影像是 BGR 格式
     if success:
-        cv2.imshow("camera", imgBGR) # 左右相反
+        cv2.imshow("camera", imgBGR) # 直接顯示會左右相反
     else:
         print("capture failed!")
         break
 
-    if cv2.waitKey(1) == ord('q'):
+    if cv2.waitKey(1) == ord('q'): # 按下 Q 離開
         break
 
 # 釋放資源
